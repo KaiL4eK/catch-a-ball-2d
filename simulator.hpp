@@ -20,6 +20,8 @@ public:
     virtual void render(cv::Mat &canvas) = 0;
 
     cv::Point2d get_position() { return m_pos; }
+    void setPosition(cv::Point2d pos) { m_pos = pos; }
+    
     cv::Point2d get_speed() { return m_speed; }
 
 private:
@@ -36,8 +38,24 @@ public:
 
     void render(cv::Mat &canvas) override;
 
+    double getRadius() { return m_radius; }
+
 private:
     const double m_radius;
+};
+
+class CatchPlane : public Object
+{
+public:
+    CatchPlane(cv::Point2d initial_pos, cv::Size2d size);
+
+    void render(cv::Mat &canvas) override;
+    void setRefPosition(double yMeter);
+
+    bool isBallCaught(std::shared_ptr<Ball> p_ball);
+
+private:
+    const cv::Size2d m_size;
 };
 
 class Cannon
@@ -76,13 +94,18 @@ public:
     CatchABallSimulator(cv::Size size, double sim_dt = 0.001);
     ~CatchABallSimulator();
 
-    void show_scene();
+    cv::Mat getScene();
+
     void tick();
     bool is_end();
 
     double get_sim_time();
 
+    int32_t getShotIdx();
     cv::Mat get_control_frame();
+
+    void setPlaneControl(int32_t);
+    int32_t getPlaneDistancePx();
 
 private:
     cv::Mat m_control_frame;
@@ -98,14 +121,22 @@ private:
     Cannon                  m_cannon;
     std::shared_ptr<Ball>   m_ball;
 
+    std::shared_ptr<CatchPlane> m_plane;
+
     int32_t m_lock_ticks;
 
-    const static std::string CANVAS_NAME;
+    int32_t     m_catchPlaneRefPx;
+    double m_catchPlaneRef;
+
+    uint32_t m_shotCounter;
+    uint32_t m_catchCounter;
 
     std::atomic<unsigned long> m_current_tick;
     double  m_sim_dt;
 
     bool    m_is_end;
+
+    void resetShot();
 };
 
 } // namespace sim
