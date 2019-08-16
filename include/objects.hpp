@@ -32,7 +32,6 @@ public:
 
     cv::Scalar  getColor() { return m_colorBGR; }
     cv::Point2d getPosition() { return m_pos; }
-    cv::Point2d getSpeedLimit() { return m_def.speedLimit; }
 
     double      getRotationDeg() { return m_angleDeg; }
     double      getRotationRad() { return m_angleDeg * M_PI/180; }

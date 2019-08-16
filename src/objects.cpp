@@ -29,6 +29,30 @@ void Object::move(double dt)
     if ( m_def.gravity != 0 )
         m_speed += dt * Point2d(0, -m_def.gravity);
     
+    if ( m_def.speedLimit.x != 0 && 
+         m_speed.x > m_def.speedLimit.x ) 
+    {
+        m_speed.x = m_def.speedLimit.x;
+    } 
+
+    if ( m_def.speedLimit.x != 0 && 
+         m_speed.x < -m_def.speedLimit.x )
+    {
+        m_speed.x = -m_def.speedLimit.x;
+    } 
+
+    if ( m_def.speedLimit.y != 0 && 
+         m_speed.y > m_def.speedLimit.y )
+    {
+        m_speed.y = m_def.speedLimit.y;
+    } 
+
+    if ( m_def.speedLimit.x != 0 && 
+         m_speed.y < -m_def.speedLimit.y ) 
+    {
+        m_speed.y = -m_def.speedLimit.y;
+    } 
+
     m_pos += dt * m_speed;
 }
 
@@ -93,14 +117,7 @@ CatchPlane::CatchPlane(ObjectDef &def, Size2d size) :
 
 void CatchPlane::move(double dt)
 {
-    double speedY = (m_refPosY - getPosition().y)/dt;
-
-    double speedLimitY = getSpeedLimit().y;
-
-    speedY = speedY > speedLimitY ? speedLimitY :
-                speedY < -speedLimitY ? -speedLimitY : speedY; 
-
-    setSpeed( Point2d(0, speedY) );
+    setSpeed( Point2d(0, (m_refPosY - getPosition().y)/dt) );
 
     Object::move(dt);
 }

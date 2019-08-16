@@ -9,7 +9,6 @@ using namespace cv;
 using namespace std;
 using namespace sim;
 
-
 /* Configurable parameters */
 const double RANDOM_CANNON_DEG_CHANGE   = 15;
 const double GRAVITY_CONST = 9.81;
@@ -215,10 +214,10 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
     if ( isnan(angle) )
     {
         throw invalid_argument("Too low value of shooting speed. "
-                                "Set higher value of 'ballShotSpeedMPS'");
+                                "Set higher value of 'ballShotSpeedLimitsMPS'");
     }
 
-    cout << "Base angle: " << angle << endl;
+    cout << "Base angle: " << angle << " [deg] for speed " << testSpeed << " [m/s]" << endl;
 
     m_shotInitialAngle = angle;
     m_cannon->setShotAngle(m_shotInitialAngle);
@@ -362,9 +361,3 @@ int CatchABallSimulator::getPlaneDistancePx()
 {
     return m_scene->m2px( m_plane->getPosition() ).x - m_control_rect.x;
 }
-
-double CatchABallSimulator::get_sim_time()
-{
-    return m_current_tick * m_sim_dt;
-}
-

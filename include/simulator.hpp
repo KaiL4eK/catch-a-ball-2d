@@ -71,8 +71,6 @@ public:
 
     void        setAutoShootingMode(bool enabled);
 
-    double      get_sim_time();
-
     void        setPlaneControl(int32_t);
     int32_t     getPlaneDistancePx();
 

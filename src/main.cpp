@@ -54,19 +54,17 @@ int main(int argc, char **argv)
     string configFpath = parser.get<string>("config");
 
     CatchABallSimulator simulator(configFpath);
+    simulator.setAutoShootingMode(true);
 
     PlaneControl control;
 
     int32_t shotsCntr = 0;
     int32_t planeDistancePx = simulator.getPlaneDistancePx();
 
-    simulator.setAutoShootingMode(true);
-
     while ( !simulator.isEnd() )
     {
-        CatchABallStatistics stats = simulator.getStatistics();
-
         simulator.tick();
+        CatchABallStatistics stats = simulator.getStatistics();
 
         /* Clear prediction if new shot happened */
         if ( stats.shotsDone != shotsCntr )
@@ -81,7 +79,7 @@ int main(int argc, char **argv)
             double ballRadiusPx = control.getAveragePredictedRadiusPx();
 
             int controlY = control.getPlanePositionPrediction(control_frame, 
-                                        planeDistancePx-ballRadiusPx);
+                                        planeDistancePx-ballRadiusPx);          
 
             simulator.setPlaneControl(controlY);
             

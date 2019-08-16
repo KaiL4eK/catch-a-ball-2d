@@ -65,6 +65,9 @@ PlaneControl::PlaneControl(bool debugRender) :
 
 double PlaneControl::getAveragePredictedRadiusPx()
 {
+    if ( m_ballPoints.size() == 0 )
+        return 0;
+
     double result = 0;
 
     for ( const CircleMatch &mtch : m_ballPoints )
