@@ -11,11 +11,9 @@ using namespace sim;
 
 
 /* Configurable parameters */
-const double BALL_RADIUS_M              = 0.1;
 const double BALL_INITIAL_SPEED_MPS     = 20;
-const double CATCH_PLANE_WIDTH_M        = 0.03;
 const double RANDOM_CANNON_DEG_CHANGE   = 15;
-
+const double GRAVITY_CONST = 9.81;
 
 Scene::Scene(Size canvasSzPx, 
              Size2d canvasSzMtr) :
@@ -120,13 +118,28 @@ bool Scene::contains(shared_ptr<Ball> obj)
     return m_canvasRect.contains(posPx);
 }
 
+double getBallBalisticAngleDeg( Point2d desiredPos )
+{
+    double S = BALL_INITIAL_SPEED_MPS;
+    double S2 = S*S;
+    
+    double G = GRAVITY_CONST;
+    double x = desiredPos.x;
+    double y = desiredPos.y;
+
+    cout << S << " / " << G << " / " << x << " / " << y << endl;
+
+    double result = atan2( S2 * sqrt(S2*S2-G*(G*x*x+2*S2*y)), G*x ) * 180/M_PI;
+}
 
 CatchABallSimulator::CatchABallSimulator(const string &configFpath) : 
     m_is_end(false), 
     m_current_tick(0), 
     m_isBallFlying(false),
     m_shotCounter(0), 
-    m_catchCounter(0)
+    m_catchCounter(0),
+    /* Defaults */
+    m_ballRadius(0.1)
 {   
     FileStorage cfgFs(configFpath, FileStorage::READ);
     if ( !cfgFs.isOpened() )
@@ -143,6 +156,7 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
 
     cfgFs["dt"] >> m_sim_dt;
     cfgFs["debugRender"] >> m_isRenderEnabled;
+    cfgFs["ballRadiusMtr"] >> m_ballRadius;
 
     if ( m_isRenderEnabled )
         cout << "Debug Render enabled" << endl; 
@@ -163,18 +177,20 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
 
     ObjectDef ballDef;
     ballDef.colorBGR = Scalar(0, 0, 255);  // Always red - don`t confuse CS =);
+    ballDef.gravity = GRAVITY_CONST;
 
-    Size2d cannonSz(BALL_RADIUS_M, BALL_RADIUS_M*3);
+    Size2d cannonSz(m_ballRadius, m_ballRadius*3);
     m_cannon = make_shared<Cannon>(cannonDef, ballDef, cannonSz);
 
     /* Create catch plane */
 
-    Size2d catchPlaneSz(BALL_RADIUS_M/2, BALL_RADIUS_M*2);
+    Size2d catchPlaneSz(m_ballRadius/2, m_ballRadius*2);
     ObjectDef catchPlaneDef;
     // Make a small shift from right border
     catchPlaneDef.position = Point2d(canvasSzMtr.width - catchPlaneSz.width, 
                                      canvasSzMtr.height/2);
     catchPlaneDef.colorBGR = Scalar(0, 0, 0);   // Always black!
+    catchPlaneDef.speedLimit = Point2d( 0, 4*BALL_INITIAL_SPEED_MPS );
 
     m_plane = make_shared<CatchPlane>(catchPlaneDef, catchPlaneSz);
 
@@ -182,7 +198,13 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
     srand(time(NULL));
 
     /* Calculate initial angle */
+    // Start Plane position and desired parameters are same
+    double angle = getBallBalisticAngleDeg( catchPlaneDef.position - cannonDef.position );
+    cout << angle << endl;
 
+    m_initialAngle = 20;
+
+    m_cannon->setShotAngle(m_initialAngle);
 }
 
 CatchABallSimulator::~CatchABallSimulator()
@@ -197,6 +219,7 @@ Mat CatchABallSimulator::getScene()
 void CatchABallSimulator::resetShot()
 {
     m_ball.reset();
+    m_isBallFlying = false;
 
     double random_degree_change = 
         rand() % static_cast<int>(RANDOM_CANNON_DEG_CHANGE * 2);
@@ -204,14 +227,13 @@ void CatchABallSimulator::resetShot()
 
     cout << "Change degree for " << random_degree_change << " degree" << endl;
 
-    // m_cannon.set_angle(m_cannon.get_angle() + random_degree_change);    
-    
+    m_cannon->setShotAngle(m_initialAngle + random_degree_change);
 }
 
 void CatchABallSimulator::shootBall()
 {
     if (!m_isBallFlying) {
-        m_ball = m_cannon->shoot(BALL_INITIAL_SPEED_MPS, BALL_RADIUS_M);
+        m_ball = m_cannon->shoot(BALL_INITIAL_SPEED_MPS, m_ballRadius);
         m_isBallFlying = true;
         m_shotCounter++;
     }
@@ -238,6 +260,14 @@ void CatchABallSimulator::tick()
         }
     }
 
+    if ( !m_isBallFlying )
+    {
+        shootBall();
+    }
+
+    m_plane->move(m_sim_dt);
+    // Cannon movement not required
+
     /* After movement render positions */
     m_scene->cleanCanvas();
 
@@ -262,16 +292,17 @@ bool CatchABallSimulator::is_end()
 
 void CatchABallSimulator::setPlaneControl(int frameYPx)
 {
-    // m_catchPlaneRefPx = frameYPx > m_canvas_rect.height ? m_canvas_rect.height:
-                        // frameYPx < 0 ? 0 : frameYPx;
+    m_catchPlaneRefPx = frameYPx > m_canvas_rect.height ? m_canvas_rect.height:
+                        frameYPx < 0 ? 0 : frameYPx;
 
-    // m_plane->setRefPosition( px_2_meters(m_canvas_rect.height-m_catchPlaneRefPx) );
+    Point2d refPos = m_scene->px2m(Point(0, m_canvas_rect.height-m_catchPlaneRefPx));
+
+    m_plane->setRefPosition( refPos.y );
 }
 
 int CatchABallSimulator::getPlaneDistancePx()
 {
-    return 600;
-    // return meters_2_px(m_plane->get_position().x) - m_control_rect.x;
+    return m_scene->m2px( m_plane->getPosition() ).x - m_control_rect.x;
 }
 
 double CatchABallSimulator::get_sim_time()

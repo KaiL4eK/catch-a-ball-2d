@@ -6,3 +6,5 @@ canvasSizeMeter: [8., 6.]
 dt: 0.001
 
 debugRender: True
+
+ballRadiusMtr: 0.1

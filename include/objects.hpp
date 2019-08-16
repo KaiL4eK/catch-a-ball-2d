@@ -10,13 +10,11 @@
 namespace sim
 {
 
-const double GRAVITY_CONST = 9.81;
-
-
 struct ObjectDef
 {
     cv::Point2d position;
     cv::Point2d speed;
+    cv::Point2d speedLimit;
     cv::Scalar  colorBGR;
     double      gravity;
     double      rotationDeg;
@@ -34,9 +32,14 @@ public:
 
     cv::Scalar getColor() { return m_colorBGR; }
     cv::Point2d getPosition() { return m_pos; }
-    cv::Point2d get_speed() { return m_speed; }
+    cv::Point2d getSpeedLimit() { return m_def.speedLimit; }
+
     double getRotationDeg() { return m_angleDeg; }
     double getRotationRad() { return m_angleDeg * M_PI/180; }
+
+protected:
+    void setAngle(double angleDeg);
+    void setSpeed(cv::Point2d);
 
 private:
     ObjectDef   m_def;
@@ -63,14 +66,18 @@ class CatchPlane : public Object
 public:
     CatchPlane(ObjectDef &def, cv::Size2d size);
 
+    void move(double dt) override;
+
     cv::Size2d getSize() { return m_size; } 
 
-    void setRefPosition(double yMeter);
+    void setRefPosition(double refPosY);
 
     bool isBallCaught(std::shared_ptr<Ball> p_ball);
 
 private:
     const cv::Size2d m_size;
+
+    double m_refPosY;
 };
 
 class Cannon : public Object
@@ -80,7 +87,7 @@ public:
 
     cv::Size2d getSize() { return m_size; } 
 
-    void set_angle(double angleDeg);
+    void setShotAngle(double angleDeg);
     std::shared_ptr<Ball> shoot(double ballInitialSpeedMPS, 
                                 double ballRadiusMtr);
 

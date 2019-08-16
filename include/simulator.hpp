@@ -71,7 +71,6 @@ private:
     cv::Mat m_control_frame;
     double  m_last_frame_tick;
 
-    cv::Mat m_canvas;
     cv::Rect m_canvas_rect;
 
     cv::Rect m_control_rect;
@@ -85,6 +84,9 @@ private:
     int32_t     m_catchPlaneRefPx;
     double      m_catchPlaneRef;
 
+    double      m_ballRadius;
+
+    double      m_initialAngle;
 
     uint32_t    m_shotCounter;
     uint32_t    m_catchCounter;

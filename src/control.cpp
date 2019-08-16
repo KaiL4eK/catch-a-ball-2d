@@ -62,7 +62,7 @@ int PlaneControl::getPlanePositionPrediction(Mat &ballFrame, int planeDistPx)
 {
     CircleContour contours;
     vector<CircleMatch> circles;
-    int resultControlY;
+    int resultControlY = ballFrame.size().height/2;
 
     getCircleContours(ballFrame, contours);
 
