@@ -66,7 +66,7 @@ void Scene::render(shared_ptr<Ball> obj)
             FILLED);
 }
 
-void Scene::render(std::shared_ptr<CatchPlane> obj)
+void Scene::render(shared_ptr<CatchPlane> obj)
 {
     Point pxPos = m2px(obj->getPosition());
     Size pxSize = m2px(obj->getSize());
@@ -78,7 +78,7 @@ void Scene::render(std::shared_ptr<CatchPlane> obj)
     rectangle( m_canvas, desc, obj->getColor(), FILLED );
 }
 
-void Scene::render(std::shared_ptr<Cannon> obj)
+void Scene::render(shared_ptr<Cannon> obj)
 {
     Size2d size = obj->getSize();
 
@@ -98,6 +98,11 @@ void Scene::render(std::shared_ptr<Cannon> obj)
     }
 
     fillConvexPoly(m_canvas, vertices, 4, obj->getColor());
+}
+
+void Scene::renderControlZone(Rect &controlZone)
+{
+    rectangle(m_canvas, controlZone, Scalar(50, 50, 50));
 }
 
 Rect Scene::getRect()
@@ -186,8 +191,8 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
 
     /* Service variables */
 
-    m_control_rect = Rect(Point(canvasSzPx.width/3, 0), 
-                            Size(canvasSzPx.width/3, canvasSzPx.height)),
+    m_controlRect = Rect(Point(canvasSzPx.width/3, 0), 
+                         Size(canvasSzPx.width/3, canvasSzPx.height)),
 
     /* Create scene */
 
@@ -255,7 +260,7 @@ Mat CatchABallSimulator::getScene()
 
 Mat CatchABallSimulator::getControlFrame()
 {
-    return m_scene->getCanvas()(m_control_rect).clone();
+    return m_scene->getCanvas()(m_controlRect).clone();
 }
 
 void CatchABallSimulator::resetShot()
@@ -339,6 +344,8 @@ void CatchABallSimulator::tick()
 
     if (m_ball)
         m_scene->render(m_ball);
+    
+    m_scene->renderControlZone(m_controlRect);
 }
 
 void CatchABallSimulator::setAutoShootingMode(bool enabled)
@@ -363,5 +370,5 @@ void CatchABallSimulator::setPlaneControl(int frameYPx)
 
 int CatchABallSimulator::getPlaneDistancePx()
 {
-    return m_scene->m2px( m_plane->getPosition() ).x - m_control_rect.x;
+    return m_scene->m2px( m_plane->getPosition() ).x - m_controlRect.x;
 }

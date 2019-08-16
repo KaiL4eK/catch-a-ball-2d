@@ -22,6 +22,7 @@ public:
     void render(std::shared_ptr<Ball> obj);
     void render(std::shared_ptr<CatchPlane> obj);
     void render(std::shared_ptr<Cannon> obj);
+    void renderControlZone(cv::Rect &controlZone);
 
     void cleanCanvas();
     cv::Mat getCanvas();
@@ -70,10 +71,10 @@ public:
     void        tick();
     bool        isEnd();
 
-    void        setAutoShootingMode(bool enabled);
-
     void        setPlaneControl(int32_t);
     int32_t     getPlaneDistancePx();
+
+    void        setAutoShootingMode(bool enabled);
 
     void        shootBall(double shotAngleDeg, 
                           double ballSpeedMPS);
@@ -82,7 +83,7 @@ public:
     CatchABallStatistics getStatistics();
 
 private:
-    cv::Rect m_control_rect;
+    cv::Rect m_controlRect;
 
     std::shared_ptr<Scene>   m_scene;
 
