@@ -25,6 +25,7 @@ public:
 
     void cleanCanvas();
     cv::Mat getCanvas();
+    cv::Rect getRect();
 
     cv::Point   m2px(cv::Point2d m);
     cv::Size    m2px(cv::Size2d m);
@@ -81,7 +82,6 @@ public:
     CatchABallStatistics getStatistics();
 
 private:
-    cv::Rect m_canvas_rect;
     cv::Rect m_control_rect;
 
     std::shared_ptr<Scene>   m_scene;
@@ -98,14 +98,13 @@ private:
         [1] - upper limit */
     std::vector<double> m_speedLimitsMPS;
 
-    CatchABallStatistics m_stats;
-    std::atomic<uint32_t> m_current_tick;
-    double      m_sim_dt;
+    CatchABallStatistics    m_stats;
+    std::atomic<uint32_t>   m_current_tick;
+    double                  m_sim_dt;
 
     bool        m_isEnd;
     bool        m_isBallFlying;
     bool        m_isAutoShotsEnabled;
-
 
     void resetShot();
     void renderStatistics();

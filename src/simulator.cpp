@@ -100,6 +100,11 @@ void Scene::render(std::shared_ptr<Cannon> obj)
     fillConvexPoly(m_canvas, vertices, 4, obj->getColor());
 }
 
+Rect Scene::getRect()
+{
+    return m_canvasRect;
+}
+
 Mat Scene::getCanvas()
 {
     return m_canvas;
@@ -119,7 +124,7 @@ bool Scene::contains(shared_ptr<Ball> obj)
     return m_canvasRect.contains(posPx);
 }
 
-double getBallBalisticAngleDeg( Point2d desiredPos, double initialSpeed )
+static double getBallBalisticAngleDeg( Point2d desiredPos, double initialSpeed )
 {
     double S = initialSpeed;
     double S2 = S*S;
@@ -132,7 +137,7 @@ double getBallBalisticAngleDeg( Point2d desiredPos, double initialSpeed )
     double result = atan2( S2 - sqrt(S4-G*(G*x*x+2*S2*y)), G*x ) * 180/M_PI;
 }
 
-double getRandomInRange( double min, double max )
+static double getRandomInRange( double min, double max )
 {
     return min + (rand() % static_cast<int>(max - min + 1));
 }
@@ -181,7 +186,6 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
 
     /* Service variables */
 
-    m_canvas_rect = Rect(Point(0, 0), canvasSzPx),
     m_control_rect = Rect(Point(canvasSzPx.width/3, 0), 
                             Size(canvasSzPx.width/3, canvasSzPx.height)),
 
@@ -305,7 +309,7 @@ void CatchABallSimulator::tick()
         if ( !m_scene->contains(m_ball) )
         {
             /* If ball flew away no through right wall */
-            if ( m_scene->m2px(m_ball->getPosition()).x < m_canvas_rect.width )
+            if ( m_scene->m2px(m_ball->getPosition()).x < m_scene->getRect().width )
                 m_stats.flewAway++;
 
             resetShot();
@@ -349,7 +353,7 @@ bool CatchABallSimulator::isEnd()
 
 void CatchABallSimulator::setPlaneControl(int frameYPx)
 {
-    frameYPx = frameYPx > m_canvas_rect.height ? m_canvas_rect.height:
+    frameYPx = frameYPx > m_scene->getRect().height ? m_scene->getRect().height:
                 frameYPx < 0 ? 0 : frameYPx;
 
     Point2d refPos = m_scene->px2m(Point(0, frameYPx));
