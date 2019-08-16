@@ -8,13 +8,15 @@ find_package(OpenCV REQUIRED)
 find_package (Eigen3 REQUIRED)
 
 add_executable(${PROJECT_NAME} 
-                    main.cpp
-                    simulator.cpp
-                    simulator.hpp
-                    control.cpp
-                    control.hpp
+                    src/main.cpp
+                    src/simulator.cpp
+                    include/simulator.hpp
+                    src/control.cpp
+                    include/control.hpp
+                    src/objects.cpp
+                    include/objects.hpp
                 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE .)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} Eigen3::Eigen)

@@ -11,15 +11,12 @@ using namespace cv;
 using namespace sim;
 using namespace std;
 
-const uint32_t MIX_APPROX_POINTS = 10;
 
 int main(int argc, char **argv)
 {
-    CatchABallSimulator simulator(Size(800, 600), 0.001);
+    CatchABallSimulator simulator(string("config.yaml"));
 
     PlaneControl control;
-
-    vector<Point> circle_matches;
 
     int32_t prevShotIdx = simulator.getShotIdx();
     int32_t planeDistancePx = simulator.getPlaneDistancePx();
@@ -33,7 +30,7 @@ int main(int argc, char **argv)
         if ( shotIdx != prevShotIdx )
         {
             prevShotIdx = shotIdx;
-            circle_matches.clear();
+            control.resetPredictions();
         }
 
         Mat control_frame = simulator.get_control_frame();

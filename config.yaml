@@ -1,0 +1,8 @@
+%YAML:1.0
+
+canvasSizePixel: [800, 600]
+canvasSizeMeter: [8., 6.]
+
+dt: 0.001
+
+debugRender: True
