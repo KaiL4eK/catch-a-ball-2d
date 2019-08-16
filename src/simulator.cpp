@@ -227,7 +227,7 @@ CatchABallSimulator::CatchABallSimulator(const string &configFpath) :
     Size2d catchPlaneSz(m_ballRadius/2, m_ballRadius*2);
     ObjectDef catchPlaneDef;
     // Make a small shift from right border
-    catchPlaneDef.position = Point2d(canvasSzMtr.width - catchPlaneSz.width, 
+    catchPlaneDef.position = Point2d(canvasSzMtr.width - catchPlaneSz.width * 3, 
                                      canvasSzMtr.height/2);
     catchPlaneDef.colorBGR = Scalar(0, 0, 0);   // Always black!
     catchPlaneDef.speedLimit = Point2d( 0, 4*m_speedLimitsMPS[1] );
