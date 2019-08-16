@@ -10,11 +10,12 @@ using namespace sim;
 
 #include <Eigen/QR>
 
-const double MIN_BALL_RADIUS_PX = 10;
-const double MIN_CIRCLE_ECCENTRICITY = 0.9;
+/* Set value based on control system performance */
+// const double MIN_BALL_RADIUS_PX = 14;
+const double MIN_CIRCLE_ECCENTRICITY = 0.01;
 const uint32_t MIN_TRAJECTORY_POINTS = 10;
 
-static void polyfit(const vector<Point2f> &pnts,
+static void polyfit(const vector<CircleMatch> &pnts,
                     vector<double> &coeff,
                     int order)
 {
@@ -22,7 +23,7 @@ static void polyfit(const vector<Point2f> &pnts,
 
     for (size_t i = 0; i < pnts.size(); i++)
     {
-        yv[i] = pnts[i].y;
+        yv[i] = pnts[i].pos.y;
     }
 
     Eigen::MatrixXd A(pnts.size(), order + 1);
@@ -35,7 +36,7 @@ static void polyfit(const vector<Point2f> &pnts,
     {
         for (size_t j = 0; j < order + 1; j++)
         {
-            A(i, j) = pow(pnts[i].x, j);
+            A(i, j) = pow(pnts[i].pos.x, j);
         }
     }
 
@@ -48,9 +49,32 @@ static void polyfit(const vector<Point2f> &pnts,
     }
 }
 
+static double getContourEccentricity(const Moments &mu)
+{
+    double m20s02 = mu.m20 - mu.m02;
+    double m20p02 = mu.m20 + mu.m02;
+
+    double bigSqrt = sqrt(m20s02 * m20s02 + 4 * mu.m11 * mu.m11);
+    return (m20p02 + bigSqrt) / (m20p02 - bigSqrt);
+}
+
 PlaneControl::PlaneControl(bool debugRender) : 
     m_isDebugRenderEnabled(debugRender)
 {
+}
+
+double PlaneControl::getAveragePredictedRadiusPx()
+{
+    double result = 0;
+
+    for ( const CircleMatch &mtch : m_ballPoints )
+    {
+        result += mtch.radius;
+    }
+
+    result /= m_ballPoints.size();
+
+    return result;
 }
 
 void PlaneControl::resetPredictions()
@@ -74,15 +98,15 @@ int PlaneControl::getPlanePositionPrediction(Mat &ballFrame, int planeDistPx)
                            match.pos,
                            match.radius);
 
-        if (match.radius < MIN_BALL_RADIUS_PX)
-            continue;
+        // if (match.radius < MIN_BALL_RADIUS_PX)
+            // continue;
 
         circles.push_back(match);
     }
 
     if (circles.size() > 0)
     {
-        m_ballPoints.push_back(circles[0].pos);
+        m_ballPoints.push_back(circles[0]);
     }
 
     /* Approximate previous points to predict future trajectory */
@@ -115,7 +139,7 @@ int PlaneControl::getPlanePositionPrediction(Mat &ballFrame, int planeDistPx)
         for (auto pnt_mtc : m_ballPoints)
         {
             circle(ballFrame,
-                   pnt_mtc,
+                   pnt_mtc.pos,
                    2,
                    Scalar(255, 0, 128),
                    FILLED);
@@ -145,15 +169,6 @@ void PlaneControl::getRedFilteredFrame(const Mat &frame, Mat &binResultMask)
                 0.0, binResultMask);
 }
 
-double PlaneControl::getEccentricity(const Moments &mu)
-{
-    double m20s02 = mu.m20 - mu.m02;
-    double m20p02 = mu.m20 + mu.m02;
-
-    double bigSqrt = sqrt(m20s02 * m20s02 + 4 * mu.m11 * mu.m11);
-    return (m20p02 + bigSqrt) / (m20p02 - bigSqrt);
-}
-
 int PlaneControl::getCircleContours(Mat &frame, CircleContour &outContours)
 {
     Mat redFiltered;
@@ -167,13 +182,16 @@ int PlaneControl::getCircleContours(Mat &frame, CircleContour &outContours)
     {
         for (int i = 0; i < contours.size(); i++)
         {
-            // double contourEccentricity = getEccentricity(moments(contours[i]));
-            // cout << contourEccentricity << endl;
+            /* Simplified eccentricity estimation */
 
-            // if (contourEccentricity > MIN_CIRCLE_ECCENTRICITY)
-            // {
-                outContours.push_back(contours[i]);
-            // }/
+            /* Requirements for ellipse */
+            if ( contours[i].size() > 5 )
+            {
+                RotatedRect result = fitEllipse( contours[i] );
+
+                if ( abs(1.0 - result.size.width / result.size.height) < MIN_CIRCLE_ECCENTRICITY )
+                    outContours.push_back(contours[i]);
+            }            
 
             if (m_isDebugRenderEnabled)
             {

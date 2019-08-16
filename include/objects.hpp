@@ -30,16 +30,16 @@ public:
 
     virtual void move(double dt);
 
-    cv::Scalar getColor() { return m_colorBGR; }
+    cv::Scalar  getColor() { return m_colorBGR; }
     cv::Point2d getPosition() { return m_pos; }
     cv::Point2d getSpeedLimit() { return m_def.speedLimit; }
 
-    double getRotationDeg() { return m_angleDeg; }
-    double getRotationRad() { return m_angleDeg * M_PI/180; }
+    double      getRotationDeg() { return m_angleDeg; }
+    double      getRotationRad() { return m_angleDeg * M_PI/180; }
 
 protected:
-    void setAngle(double angleDeg);
-    void setSpeed(cv::Point2d);
+    void        setAngle(double angleDeg);
+    void        setSpeed(cv::Point2d);
 
 private:
     ObjectDef   m_def;
@@ -55,7 +55,7 @@ class Ball : public Object
 public:
     Ball(ObjectDef &def, double radius);
 
-    double getRadius() { return m_radius; }
+    double      getRadius() { return m_radius; }
 
 private:
     const double m_radius;
@@ -66,18 +66,15 @@ class CatchPlane : public Object
 public:
     CatchPlane(ObjectDef &def, cv::Size2d size);
 
-    void move(double dt) override;
+    void        move(double dt) override;
 
-    cv::Size2d getSize() { return m_size; } 
-
-    void setRefPosition(double refPosY);
-
-    bool isBallCaught(std::shared_ptr<Ball> p_ball);
+    cv::Size2d  getSize() { return m_size; } 
+    void        setRefPosition(double refPosY);
+    bool        isBallCaught(std::shared_ptr<Ball> p_ball);
 
 private:
     const cv::Size2d m_size;
-
-    double m_refPosY;
+    double      m_refPosY;
 };
 
 class Cannon : public Object
@@ -85,16 +82,14 @@ class Cannon : public Object
 public:
     Cannon(ObjectDef &def, ObjectDef &ballDef, cv::Size2d size);
 
-    cv::Size2d getSize() { return m_size; } 
-
-    void setShotAngle(double angleDeg);
+    cv::Size2d  getSize() { return m_size; }
+    void        setShotAngle(double angleDeg);
     std::shared_ptr<Ball> shoot(double ballInitialSpeedMPS, 
                                 double ballRadiusMtr);
 
 private:
     ObjectDef   m_ballDef;
-
-    cv::Size2d  m_size;
+    const cv::Size2d m_size;
 };
 
 

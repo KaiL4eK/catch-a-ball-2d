@@ -24,12 +24,11 @@ public:
     void resetPredictions();
 
     int getPlanePositionPrediction(cv::Mat &ballFrame, int planeDistPx);
+    double getAveragePredictedRadiusPx();
 
 private:
     bool m_isDebugRenderEnabled;
-    std::vector<cv::Point2f> m_ballPoints;
-
-    double getEccentricity(const cv::Moments &mu);
+    std::vector<CircleMatch> m_ballPoints;
 
     void getRedFilteredFrame(const cv::Mat &frame, cv::Mat &binResultMask);
     int getCircleContours(cv::Mat &frame, CircleContour &outContours);

@@ -13,7 +13,6 @@
 namespace sim
 {
 
-
 class Scene
 {
 public:
@@ -43,7 +42,19 @@ private:
     
     cv::Size m_canvasSzPx;
     cv::Size m_canvasSzMtr;
+};
 
+struct CatchABallStatistics
+{
+    uint32_t ballsCatched;
+    uint32_t shotsDone;
+    uint32_t flewAway;
+
+    CatchABallStatistics() :
+        ballsCatched(0),
+        shotsDone(0),
+        flewAway(0)
+    {}
 };
 
 class CatchABallSimulator
@@ -52,59 +63,54 @@ public:
     CatchABallSimulator(const std::string &configFpath);
     ~CatchABallSimulator();
 
-    cv::Mat getScene();
+    cv::Mat     getScene();
+    cv::Mat     getControlFrame();
 
-    void tick();
-    bool is_end();
+    void        tick();
+    bool        isEnd();
 
-    double get_sim_time();
+    void        setAutoShootingMode(bool enabled);
 
-    int32_t getShotIdx();
-    cv::Mat get_control_frame();
+    double      get_sim_time();
 
-    void setPlaneControl(int32_t);
-    int32_t getPlaneDistancePx();
+    void        setPlaneControl(int32_t);
+    int32_t     getPlaneDistancePx();
 
-    void shootBall();
+    void        shootBall(double shotAngleDeg, 
+                          double ballSpeedMPS);
+    void        randomizedShootBall();
+
+    CatchABallStatistics getStatistics();
 
 private:
-    cv::Mat m_control_frame;
-    double  m_last_frame_tick;
-
     cv::Rect m_canvas_rect;
-
     cv::Rect m_control_rect;
+
+    std::shared_ptr<Scene>   m_scene;
 
     /* Main objects */
     std::shared_ptr<Cannon>     m_cannon;
     std::shared_ptr<Ball>       m_ball;
     std::shared_ptr<CatchPlane> m_plane;
 
-
-    int32_t     m_catchPlaneRefPx;
-    double      m_catchPlaneRef;
-
     double      m_ballRadius;
+    double      m_shotInitialAngle;
 
-    double      m_initialAngle;
+    /*  [0] - lower limit
+        [1] - upper limit */
+    std::vector<double> m_speedLimitsMPS;
 
-    uint32_t    m_shotCounter;
-    uint32_t    m_catchCounter;
+    CatchABallStatistics m_stats;
+    std::atomic<uint32_t> m_current_tick;
+    double      m_sim_dt;
 
-    bool m_isRenderEnabled;
+    bool        m_isEnd;
+    bool        m_isBallFlying;
+    bool        m_isAutoShotsEnabled;
 
-    cv::Point2d m_scaleM2Px;
-
-    std::atomic<unsigned long> m_current_tick;
-    double  m_sim_dt;
-
-    bool    m_is_end;
-
-    bool    m_isBallFlying;
-
-    std::shared_ptr<Scene>   m_scene;
 
     void resetShot();
+    void renderStatistics();
 };
 
 } // namespace sim
